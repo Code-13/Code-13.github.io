@@ -1,6 +1,7 @@
 avatar: https://cdn.jsdelivr.net/gh/code-13/code-13.github.io@latest/images/avatar.jpg # 网站 Logo
 background: # 既是博客的背景，又是文章默认头图
-  path: https://cdn.jsdelivr.net/gh/nexmoe/nexmoe.github.io@latest/images/cover/5c3aec85a4343.jpg
+  # path: https://cdn.jsdelivr.net/gh/nexmoe/nexmoe.github.io@latest/images/cover/5c3aec85a4343.jpg
+  path: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/20200708225124.png
   width: 1440
   height: 960
 favicon:
@@ -80,8 +81,8 @@ gitalk:
   admin: code-13 # 拥有对该repo进行操作的 GitHub username
   owner: code-13 # 持有该 repo 的 GitHub username
   repo: code-13.github.io # 存放评论的 issue 所在的 repo
-  clientID: 80b2453b6d5f37ad6225 # GitHub Client ID
-  clientSecret: 43e99fa852795c9a7b3eb924b2558c64b84bbdeb # GitHub Client Secret
+  clientID: f3372034aa4218f9f359 # GitHub Client ID
+  clientSecret: 235d14468b5af5837a9ff5e7b7541e93070cf602 # GitHub Client Secret
 
 gitment:
   owner: code-13 # 持有该 repo 的 GitHub username
