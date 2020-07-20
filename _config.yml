@@ -17,7 +17,7 @@ url: https://code-13.github.io
 root: /
 # permalink: :year/:month/:day/:title/
 # permalink: :title.html # 就以title作为永久链接
-permalink: posts/:abbrlink.html # 就以title作为永久链接
+permalink: blogs/:abbrlink.html # 就以title作为永久链接
 
 permalink_defaults:
 #abbrlink配置
