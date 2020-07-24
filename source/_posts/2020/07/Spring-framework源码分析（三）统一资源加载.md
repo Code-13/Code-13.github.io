@@ -41,19 +41,24 @@ Resource 接口是具体资源访问策略的抽象，也是所有资源访问�
 public interface Resource extends InputStreamSource {
 
     /**
-     * 检查资源是否物理形式实际存在
-     */
+	 * 检测资源是否物理形式存在
+	 *
+	 * 此方法执行确定的存在性检查，而Resource句柄的存在仅保证有效的描述符句柄
+	 */
     boolean exists();
 
     /**
-     * 资源是否可读取
-     */
+	 * 资源是否可以被读取
+	 *
+	 * 为true时，与exists()语义相同，但是读取时仍然可能会失败
+	 * 但是，为false时，则表示资源一定不能被读取
+	 */
     default boolean isReadable() {
         return exists();
     }
 
     /**
-     * 资源文件是否打开状态，如果资源文件不能多次读取，每次读取结束应该显式关闭，以防止资源泄漏。
+     * 表明这个资源是否有已打开流的处理。 如果true ，则此InputStream就不能被多次读取，必须读取和关闭，以避免资源泄漏
      */
     default boolean isOpen() {
         return false;
@@ -83,6 +88,7 @@ public interface Resource extends InputStreamSource {
 
     /**
      * 返回 ReadableByteChannel
+     * 每次调用创建一个新的通道
      */
     default ReadableByteChannel readableChannel() throws IOException {
         return Channels.newChannel(getInputStream());
@@ -94,7 +100,7 @@ public interface Resource extends InputStreamSource {
     long contentLength() throws IOException;
 
     /**
-     * 资源的最后修改时间
+     * 资源的最后的修改时间戳
      */
     long lastModified() throws IOException;
 
@@ -132,7 +138,7 @@ public interface InputStreamSource {
 
 ### Resource 继承体系
 
-![](https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/22/20200722200745.png)
+![](https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/24/20200724105925.png)
 
 底层资源可能会有各种来源，像文件系统、Url、classpath，甚至是 servletcontext 等，因此，Resource 需要根据资源的不同类型提供不同的具体实现，如 文件（ FileSystemResource ） 、 Classpath 资源（ ClassPathResource ）、 URL 资源（ UrlResource ）、 InputStream 资源（ InputStreamResource ） 、Byte 数组（ ByteArrayResource ）等。
 
