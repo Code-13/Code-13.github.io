@@ -13,6 +13,10 @@ coverWidth: 1200
 coverHeight: 750
 ---
 
+## 源码仓库
+
+https://github.com/Code-13/spring-framework
+
 ## 说明
 
 - 本系列博客的参考均来源自 [Spring官方文档](https://spring.io/projects/spring-framework)
@@ -33,8 +37,12 @@ coverHeight: 750
 
 - [Spring-framework源码分析（三）统一资源加载](https://code-13.github.io/blogs/5eef8624.html)
 
+- [Spring-framework源码分析（四）IOC容器初始化](https://code-13.github.io/blogs/f820fb69.html)
+
 ## 引用资源汇总
 
+- [Spring官方文档](https://spring.io/projects/spring-framework)
 - [java技术驿站之死磕Spring](http://cmsblogs.com/?p=4047)
 - [Spring5源码分析(002)——博客汇总](https://www.cnblogs.com/wpbxin/p/12791003.html)
 - [芋道源码-Spring Framework 实现原理与源码解析系统 —— 精品合集](http://www.iocoder.cn/Spring/good-collection/)
+- [Spring5参考指南](https://docs.flydean.com/spring-framework-documentation5)

@@ -534,7 +534,9 @@ public static void registerBeanDefinition(
 
 ## refresh()方法
 
-<font color="red">refresh方法是Spring容器最核心的方法,概括了Spring初始化bean的整个生命周期，包括大家大概熟悉的一些生命周期的回调，以及AOP或者很多大神都分析过的Spring解决循环依赖的三级缓存</font>
+<font color="red">
+refresh方法是Spring容器最核心的方法,概括了Spring初始化bean的整个生命周期，包括大家大概熟悉的一些生命周期的回调，以及AOP或者很多大神都分析过的Spring解决循环依赖的三级缓存
+</font>
 
 ```java
 public void refresh() throws BeansException, IllegalStateException {
@@ -618,3 +620,5 @@ public void refresh() throws BeansException, IllegalStateException {
 图解
 
 ![](https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/27/20200727174111.png)
+
+下章会详解refresh()方法
