@@ -37,7 +37,9 @@ https://github.com/Code-13/spring-framework
 
 - [Spring-framework源码分析（三）统一资源加载](https://code-13.github.io/blogs/5eef8624.html)
 
-- [Spring-framework源码分析（四）IOC容器初始化](https://code-13.github.io/blogs/f820fb69.html)
+- [Spring-framework源码分析（五）IOC容器初始化](https://code-13.github.io/blogs/f820fb69.html)
+
+- [Spring-framework源码分析（六）refresh方法](https://code-13.github.io/blogs/53ad1a77.html)
 
 ## 引用资源汇总
 
@@ -47,3 +49,4 @@ https://github.com/Code-13/spring-framework
 - [芋道源码-Spring Framework 实现原理与源码解析系统 —— 精品合集](http://www.iocoder.cn/Spring/good-collection/)
 - [Spring5参考指南](https://docs.flydean.com/spring-framework-documentation5)
 - [Spring 5.x 源码之旅](https://blog.csdn.net/wangwei19871103/category_9584144.html)
+- [Spring 学习——原理解析](https://www.jianshu.com/nb/42833403)

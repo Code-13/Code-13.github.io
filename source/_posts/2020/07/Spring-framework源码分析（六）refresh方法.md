@@ -1,5 +1,5 @@
 ---
-title: Spring-framework源码分析（五）refresh方法
+title: Spring-framework源码分析（六）refresh方法
 abbrlink: 53ad1a77
 categories:
   - Spring-framework源码分析
