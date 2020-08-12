@@ -33,13 +33,13 @@ public class B {
 }
 ```
 
-A 需要 B，B 需要 A，此时就会有循环依赖，spring自动帮我们解决了此类循环依赖，但是如果是构造器注入 spring 是解决不了的，因为 spring 解决循环依赖的做法是未等Bean创建完成就提前将实例暴露出去，方便其他 Bean 进行引用。
+A 需要 B，B 需要 A，此时就会有循环依赖，spring 自动帮我们解决了此类循环依赖，但是如果是构造器注入 spring 是解决不了的，因为 spring 解决循环依赖的做法是未等Bean创建完成就提前将实例暴露出去，方便其他 Bean 进行引用。
 
 ## spring 解决循环依赖
 
 ![](https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/08/10/20200810163606.jpeg)
 
-当 spring 完成bean的实例化后，在调用 populateBean 填充属性之前，会先将实例暴露到第三级缓存 singletonFactories 中
+当 spring 完成bean的实例化后，在调用 `populateBean` 填充属性之前，会先将实例暴露到第三级缓存 `singletonFactories` 中
 
 ```java
 @Nullable
@@ -116,11 +116,11 @@ try {
 
 ## 三级缓存
 
-- singletonObject
+- `singletonObject`
     一级缓存，该缓存key = beanName, value = bean;这里的bean是已经创建完成的，该bean经历过实例化->属性填充->初始化以及各类的后置处理。因此，一旦需要获取bean时，我们第一时间就会寻找一级缓存
-- earlySingletonObjects
+- `earlySingletonObjects`
     二级缓存，该缓存key = beanName, value = bean;这里跟一级缓存的区别在于，该缓存所获取到的bean是提前曝光出来的，是还没创建完成的。也就是说获取到的bean只能确保已经进行了实例化，但是属性填充跟初始化肯定还没有做完，因此该bean还没创建完成，仅仅能作为指针提前曝光，被其他bean所引用
-- singletonFactories
+- `singletonFactories`
     三级缓存，该缓存key = beanName, value = beanFactory;在bean实例化完之后，属性填充以及初始化之前，如果允许提前曝光，spring会将实例化后的bean提前曝光，也就是把该bean转换成beanFactory并加入到三级缓存。在需要引用提前曝光对象时再通过singletonFactory.getObject()获取。
 
 ## getEarlyBeanReference
@@ -137,7 +137,7 @@ protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, 
 }
 ```
 
-getEarlyBeanReference 在 spring 内部只有一个实现 AbstractAutoProxyCreator ,此处是 spring AOP对象创建的一个时机
+`getEarlyBeanReference` 在 spring 内部只有一个实现 `AbstractAutoProxyCreator` ,此处是 spring AOP对象创建的一个时机
 
 ```java
 @Override
@@ -149,3 +149,28 @@ public Object getEarlyBeanReference(Object bean, String beanName) {
 ```
 
 getEarlyBeanReference目的就是为了后置处理，给一个在提前曝光时操作bean的机会
+
+## Spring AOP 与 循环依赖
+
+如果循环依赖的时候，所有类又都需要Spring AOP自动代理，那Spring如何提前曝光？曝光的是原始bean还是代理后的bean？
+
+要解答这个问题还是需要回到 `getEarlyBeanReference` 这个方法
+
+`getEarlyBeanReference` 方法是 `SmartInstantiationAwareBeanPostProcessor` 所规定的接口。再通过UML的类图查看实现类，仅有 `AbstractAutoProxyCreator` 进行了实现。也就是说，除了用户在子类重写，否则仅有 `AbstractAutoProxyCreator` 一种情况
+
+```java
+// AbstractAutoProxyCreator.java
+public Object getEarlyBeanReference(Object bean, String beanName) {
+  // 缓存当前bean，表示该bean被提前代理了
+  Object cacheKey = getCacheKey(bean.getClass(), beanName);
+  this.earlyProxyReferences.put(cacheKey, bean);
+  // 对bean进行提前Spring AOP代理
+  return wrapIfNecessary(bean, beanName, cacheKey);
+}
+```
+
+`wrapIfNecessary` 是用于Spring AOP自动代理的。Spring将当前bean缓存到 `earlyProxyReferences` 中标识提前曝光的bean在被提前引用之前，然后进行了Spring AOP代理。
+
+但是经过Spring AOP代理后的bean就已经不再是原来的bean了，经过代理后的bean是一个全新的bean，也就是说代理前后的2个bean连内存地址都不一样了。这时将再引出新的问题：B提前引用A将引用到A的代理，这是符合常理的，但是最原始的bean A在B完成创建后将继续创建，那么Spring Ioc最后返回的Bean是Bean A呢还是经过代理后的Bean呢？
+
+
