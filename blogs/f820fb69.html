@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+  
+  <title>Spring-framework源码分析（五）IOC容器初始化 - 代号十三</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="代号十三个人博客">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  
+  
+
+  <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.png" type="image/png" />
+  <meta name="description" content="Spring IOC 容器 在初始化时主要做以下三件事：  BeanDefinition 的Resource定位 BeanDefinition 的载入和解析 BeanDefinition 在容器中的注册">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring-framework源码分析（五）IOC容器初始化">
+<meta property="og:url" content="https://code-13.github.io/blogs/f820fb69.html">
+<meta property="og:site_name" content="代号十三">
+<meta property="og:description" content="Spring IOC 容器 在初始化时主要做以下三件事：  BeanDefinition 的Resource定位 BeanDefinition 的载入和解析 BeanDefinition 在容器中的注册">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/21/20200721115537.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/27/20200727174111.png">
+<meta property="article:published_time" content="2020-07-27T02:45:24.000Z">
+<meta property="article:modified_time" content="2020-08-20T09:54:40.960Z">
+<meta property="article:author" content="code-13">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Spring-framework">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/21/20200721115537.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/gh/nexmoe/nexmoe.github.io@latest/css/style.css,npm/highlight.js@9.15.8/styles/atom-one-dark.css,gh/nexmoe/nexmoe.github.io@latest/lib/mdui_043tiny/css/mdui.css,gh/nexmoe/nexmoe.github.io@latest/lib/iconfont/iconfont.css" crossorigin>
+  
+  <!--<link rel="stylesheet" href="/css/style.css?v=1597917296805">-->
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+<body class="mdui-drawer-body-left">
+  
+  <div id="nexmoe-background">
+    <div class="nexmoe-bg" style="background-image: url(https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/20200708225124.png)"></div>
+    <div class="mdui-appbar mdui-shadow-0">
+      <div class="mdui-toolbar">
+        <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+        <div class="mdui-toolbar-spacer"></div>
+        <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+        <a href="/" title="code-13" class="mdui-btn mdui-btn-icon"><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.png" alt="code-13"></a>
+       </div>
+    </div>
+  </div>
+  <div id="nexmoe-header">
+      <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="code-13">
+            <img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.png" alt="code-13" alt="code-13">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>10</div>
+        <div><span>标签</span>3</div>
+        <div><span>分类</span>2</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-home"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple" href="/archives" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-container"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-info-circle"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple" href="/PY.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-unorderedlist"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+  
+  <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+        <form id="search_form" action_e="https://cn.bing.com/search?q=site:code-13.github.io" onsubmit="return search();">
+            <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+        </form>
+    </div>
+</div>
+  
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">社交按钮</h3>
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://space.bilibili.com/1504682" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/code-13/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+  
+  
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/MapStruct/">MapStruct</a>
+          <span class="category-list-count">1</span>
+        </li>
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/Spring-framework源码分析/">Spring-framework源码分析</a>
+          <span class="category-list-count">9</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+  
+  
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">标签云</h3>
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Spring-framework/" style="font-size: 10px;">Spring-framework</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 10px;">源码分析</a>
+    </div>
+    
+  </div>
+
+  
+  
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章归档</h3>
+    <div class="nexmoe-widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">八月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/07/">七月 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2020 code-13
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://nexmoe.com/hexo-theme-nexmoe.html" target="_blank">Nexmoe</a>
+    </div>
+</div><!-- .nexmoe-drawer -->
+  </div>
+  <div id="nexmoe-content">
+    <div class="nexmoe-primary">
+        <div class="nexmoe-post">
+  
+      <div class="nexmoe-post-cover" style="padding-bottom: 62.5%;"> 
+          <img data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720195606.jpg" data-sizes="auto" alt="Spring-framework源码分析（五）IOC容器初始化" class="lazyload">
+          <h1>Spring-framework源码分析（五）IOC容器初始化</h1>
+      </div>
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2020年07月27日</a>
+    <a><i class="nexmoefont icon-areachart"></i>3.2k 字</a>
+    <a><i class="nexmoefont icon-time-circle-fill"></i>大概 15 分钟</a>
+</div>
+
+  <div class="nexmoe-post-right">
+    
+      <div class="nexmoe-fixed">
+        <div class="nexmoe-valign">
+            <div class="nexmoe-toc">
+                <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#准备工作"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AnnotationConfigApplicationContext体系"><span class="toc-number">2.</span> <span class="toc-text">AnnotationConfigApplicationContext体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AnnotationConfigApplicationContext-初始化"><span class="toc-number">3.</span> <span class="toc-text">AnnotationConfigApplicationContext 初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#父类加载与初始化"><span class="toc-number">3.1.</span> <span class="toc-text">父类加载与初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#无参构造器"><span class="toc-number">3.2.</span> <span class="toc-text">无参构造器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AnnotatedBeanDefinitionReader"><span class="toc-number">3.2.1.</span> <span class="toc-text">AnnotatedBeanDefinitionReader</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ClassPathBeanDefinitionScanner"><span class="toc-number">3.2.2.</span> <span class="toc-text">ClassPathBeanDefinitionScanner</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#注册主配置类"><span class="toc-number">4.</span> <span class="toc-text">注册主配置类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#refresh-方法"><span class="toc-number">5.</span> <span class="toc-text">refresh()方法</span></a></li></ol>
+            </div>
+        </div>
+      </div>
+    
+  </div>
+
+  <article>
+    <p><code>Spring IOC</code> 容器 在初始化时主要做以下三件事：</p>
+<ul>
+<li><code>BeanDefinition</code> 的Resource定位</li>
+<li><code>BeanDefinition</code> 的载入和解析</li>
+<li><code>BeanDefinition</code> 在容器中的注册</li>
+</ul>
+<a id="more"></a>
+
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li>在搭建好的调试环境新建一个模块</li>
+<li>然后写一个 配置类 <code>AppConfig</code></li>
+</ul>
+<pre><code class="java">@ComponentScan(&quot;com.github.code13&quot;)
+public class AppConfig {
+}</code></pre>
+<ul>
+<li>新建一个 类 B,并加上 <code>@Component</code> 注解</li>
+</ul>
+<pre><code class="java">@Component
+public class B {
+
+    public B(){
+        System.out.println(&quot;B创建了&quot;);
+    }
+
+}</code></pre>
+<ul>
+<li>新建 IOC 容器 </li>
+</ul>
+<pre><code class="java">final AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfig.class);</code></pre>
+<p>本片文章均围绕着上面这行代码</p>
+<h2 id="AnnotationConfigApplicationContext体系"><a href="#AnnotationConfigApplicationContext体系" class="headerlink" title="AnnotationConfigApplicationContext体系"></a>AnnotationConfigApplicationContext体系</h2><p><img data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/21/20200721115537.png" alt="" class="lazyload"></p>
+<p><code>AnnotationConfigApplicationContext</code> 继承自 <code>GenericApplicationContext</code><br><code>GenericApplicationContext</code> 继承自 <code>AbstractApplicationContext</code><br><code>AbstractApplicationContext</code> 继承自 <code>DefaultResourceLoader</code></p>
+<h2 id="AnnotationConfigApplicationContext-初始化"><a href="#AnnotationConfigApplicationContext-初始化" class="headerlink" title="AnnotationConfigApplicationContext 初始化"></a>AnnotationConfigApplicationContext 初始化</h2><pre><code class="java">public AnnotationConfigApplicationContext(Class&lt;?&gt;... componentClasses) {
+  // 调用默认无参构造器
+  this();
+  //注册配置类
+  register(componentClasses);
+  // 容器初始化的全过程
+  refresh();
+}</code></pre>
+<p>这三个方法其实都很重要</p>
+<p>先看无参构造器：</p>
+<pre><code class="java">public AnnotationConfigApplicationContext() {
+  //AnnotatedBeanDefinitionReader是一个读取注解的Bean读取器，这里将this传了进去。
+  //会注册配置类的后置处理器
+  this.reader = new AnnotatedBeanDefinitionReader(this);
+  //扫描注解真正的核心再此，会注册一些默认的过滤器
+  this.scanner = new ClassPathBeanDefinitionScanner(this);
+}</code></pre>
+<h3 id="父类加载与初始化"><a href="#父类加载与初始化" class="headerlink" title="父类加载与初始化"></a>父类加载与初始化</h3><p>由于 <code>AnnotationConfigApplicationContext</code> 继承自 <code>GenericApplicationContext</code> ， 所以也会调用 <code>GenericApplicationContext</code> 的无参构造函数</p>
+<pre><code class="java">public GenericApplicationContext() {
+  // 最终的Bean工厂
+  this.beanFactory = new DefaultListableBeanFactory();
+}</code></pre>
+<p>当然，在创建 <code>DefaultListableBeanFactory</code> 的过程中也有很多东西，这里就先掠过</p>
+<p>由于 <code>GenericApplicationContext</code> 继承自 <code>AbstractApplicationContext</code> ， 所以也会调用 <code>AbstractApplicationContext</code> 的无参构造函数<br><code>AbstractApplicationContext</code> 有很多的静态属性，还有一个静态代码块，不是很重要先跳过</p>
+<pre><code class="java">/** ResourcePatternResolver used by this context. */
+private ResourcePatternResolver resourcePatternResolver;
+
+...//省略其他代码
+
+public AbstractApplicationContext() {
+  this.resourcePatternResolver = getResourcePatternResolver();
+}
+
+...//省略其他代码
+
+protected ResourcePatternResolver getResourcePatternResolver() {
+  return new PathMatchingResourcePatternResolver(this);
+}
+</code></pre>
+<p><code>AbstractApplicationContext</code> 继承自 <code>DefaultResourceLoader</code> ，并且内部还有一个 <code>ResourcePatternResolver</code> 属性，具备了加载任意 <code>Resource</code> 的能力</p>
+<p><code>Resource</code> 体系 和 <code>ResourceLoader</code> 体系见 <a href="https://code-13.github.io/blogs/5eef8624.html">Spring-framework源码分析（三）统一资源加载</a></p>
+<h3 id="无参构造器"><a href="#无参构造器" class="headerlink" title="无参构造器"></a>无参构造器</h3><p>了解了 <code>AnnotationConfigApplicationContext</code> 的父类初始化做了什么之后，再回来看 <code>AnnotationConfigApplicationContext</code> 的无参构造器</p>
+<pre><code class="java">public AnnotationConfigApplicationContext() {
+  //AnnotatedBeanDefinitionReader是一个读取注解的Bean读取器，这里将this传了进去。
+  //会注册配置类的后置处理器
+  this.reader = new AnnotatedBeanDefinitionReader(this);
+  //扫描注解真正的核心再此，会注册一些默认的过滤器
+  this.scanner = new ClassPathBeanDefinitionScanner(this);
+}</code></pre>
+<p>在这里初始化了 <code>AnnotatedBeanDefinitionReader</code> 以及 <code>ClassPathBeanDefinitionScanner</code>，这两个类的作用都是为了注册BeanDefinition</p>
+<h4 id="AnnotatedBeanDefinitionReader"><a href="#AnnotatedBeanDefinitionReader" class="headerlink" title="AnnotatedBeanDefinitionReader"></a>AnnotatedBeanDefinitionReader</h4><pre><code class="java">public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+  // 创建 StandardEnvironment
+  this(registry, getOrCreateEnvironment(registry));
+}</code></pre>
+<pre><code class="java">public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
+  Assert.notNull(registry, &quot;BeanDefinitionRegistry must not be null&quot;);
+  Assert.notNull(environment, &quot;Environment must not be null&quot;);
+  this.registry = registry;
+
+  // ConditionEvaluator 用于对 @Conditional 及其派生 注解进行处理
+  this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+
+  // 注册注解配置的处理器
+  AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+}</code></pre>
+<p><code>AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);</code> 这段代码预先注册了注解处理的处理器，如 <code>ConfigurationClassPostProcessor</code>(这个类相当重要) 等</p>
+<p><code>AnnotationConfigUtils#registerAnnotationConfigProcessors(BeanDefinitionRegistry)</code></p>
+<pre><code class="java">public static void registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
+  registerAnnotationConfigProcessors(registry, null);
+}</code></pre>
+<p><code>AnnotationConfigUtils#registerAnnotationConfigProcessors(BeanDefinitionRegistry,Object)</code></p>
+<pre><code class="java">public static Set&lt;BeanDefinitionHolder&gt; registerAnnotationConfigProcessors(
+    BeanDefinitionRegistry registry, @Nullable Object source) {
+
+  // 拿一下 Bean 工厂
+  DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
+  if (beanFactory != null) {
+    // 为BeanFactory 配置依赖比较器
+    if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+      beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
+    }
+    // 为 BeanFactory 设置自动注入条件解析器
+    if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+      beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
+    }
+  }
+
+  // 定义返回的结果集合
+  Set&lt;BeanDefinitionHolder&gt; beanDefs = new LinkedHashSet&lt;&gt;(8);
+
+  // 下面都是为 BeanFactory 提前注册一些很重要的各种各样的 后置处理器，核心方法都是 registerPostProcessor
+
+  if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+
+    // ConfigurationClassPostProcessor 用来扫描并注册所有的 BeanDefinition 非常重要
+
+    RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
+  }
+
+  if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+    RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
+  }
+
+  // Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.
+  if (jsr250Present &amp;&amp; !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+    RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
+  }
+
+  // Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
+  if (jpaPresent &amp;&amp; !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+    RootBeanDefinition def = new RootBeanDefinition();
+    try {
+      def.setBeanClass(ClassUtils.forName(PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME,
+          AnnotationConfigUtils.class.getClassLoader()));
+    }
+    catch (ClassNotFoundException ex) {
+      throw new IllegalStateException(
+          &quot;Cannot load optional framework class: &quot; + PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, ex);
+    }
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
+  }
+
+  if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
+    RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
+  }
+
+  if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
+    RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
+    def.setSource(source);
+    beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_FACTORY_BEAN_NAME));
+  }
+
+  return beanDefs;
+}</code></pre>
+<pre><code class="java">private static BeanDefinitionHolder registerPostProcessor(
+            BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
+
+  definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+  // 把 beanDefinition 注册进 bean工厂
+  registry.registerBeanDefinition(beanName, definition);
+  return new BeanDefinitionHolder(definition, beanName);
+}</code></pre>
+<p>最终会调用 <code>DefaultListableBeanFactory#registerBeanDefinition(String,BeanDefinition)</code></p>
+<pre><code class="java">public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition)
+            throws BeanDefinitionStoreException {
+
+  Assert.hasText(beanName, &quot;Bean name must not be empty&quot;);
+  Assert.notNull(beanDefinition, &quot;BeanDefinition must not be null&quot;);
+
+  if (beanDefinition instanceof AbstractBeanDefinition) {
+    try {
+      // 验证
+      ((AbstractBeanDefinition) beanDefinition).validate();
+    }
+    catch (BeanDefinitionValidationException ex) {
+      throw new BeanDefinitionStoreException(beanDefinition.getResourceDescription(), beanName,
+          &quot;Validation of bean definition failed&quot;, ex);
+    }
+  }
+
+  // BeanDefinition 最终会以 name 为 key BeanDefinition 为 value 存储在 beanDefinitionMap 中
+
+  BeanDefinition existingDefinition = this.beanDefinitionMap.get(beanName);
+  if (existingDefinition != null) {
+    if (!isAllowBeanDefinitionOverriding()) {
+      throw new BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
+    }
+    else if (existingDefinition.getRole() &lt; beanDefinition.getRole()) {
+      // e.g. was ROLE_APPLICATION, now overriding with ROLE_SUPPORT or ROLE_INFRASTRUCTURE
+      if (logger.isInfoEnabled()) {
+        logger.info(&quot;Overriding user-defined bean definition for bean &#39;&quot; + beanName +
+            &quot;&#39; with a framework-generated bean definition: replacing [&quot; +
+            existingDefinition + &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+      }
+    }
+    else if (!beanDefinition.equals(existingDefinition)) {
+      if (logger.isDebugEnabled()) {
+        logger.debug(&quot;Overriding bean definition for bean &#39;&quot; + beanName +
+            &quot;&#39; with a different definition: replacing [&quot; + existingDefinition +
+            &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+      }
+    }
+    else {
+      if (logger.isTraceEnabled()) {
+        logger.trace(&quot;Overriding bean definition for bean &#39;&quot; + beanName +
+            &quot;&#39; with an equivalent definition: replacing [&quot; + existingDefinition +
+            &quot;] with [&quot; + beanDefinition + &quot;]&quot;);
+      }
+    }
+    this.beanDefinitionMap.put(beanName, beanDefinition);
+  }
+  else {
+    if (hasBeanCreationStarted()) {
+      // Cannot modify startup-time collection elements anymore (for stable iteration)
+      synchronized (this.beanDefinitionMap) {
+        this.beanDefinitionMap.put(beanName, beanDefinition);
+        List&lt;String&gt; updatedDefinitions = new ArrayList&lt;&gt;(this.beanDefinitionNames.size() + 1);
+        updatedDefinitions.addAll(this.beanDefinitionNames);
+        updatedDefinitions.add(beanName);
+        this.beanDefinitionNames = updatedDefinitions;
+        removeManualSingletonName(beanName);
+      }
+    }
+    else {
+      // Still in startup registration phase
+      this.beanDefinitionMap.put(beanName, beanDefinition);
+      this.beanDefinitionNames.add(beanName);
+      removeManualSingletonName(beanName);
+    }
+    this.frozenBeanDefinitionNames = null;
+  }
+
+  if (existingDefinition != null || containsSingleton(beanName)) {
+    resetBeanDefinition(beanName);
+  }
+  else if (isConfigurationFrozen()) {
+    clearByTypeCache();
+  }
+}</code></pre>
+<p>其实，所有的 <code>BeanDefinition</code> 都会被注册进 <code>beanDefinitionMap</code> 集合中，区别就是先后顺序</p>
+<pre><code class="java">/** Map of bean definition objects, keyed by bean name. */
+private final Map&lt;String, BeanDefinition&gt; beanDefinitionMap = new ConcurrentHashMap&lt;&gt;(256);</code></pre>
+<p>AnnotatedBeanDefinitionReader初始化时会做以下工作</p>
+<ul>
+<li>初始化一个 <code>ConditionEvaluator</code> 便于于对 <code>@Conditional</code> 及其派生注解进行后续处理</li>
+<li>提前注册一些比较重要的后置处理器，以便于spring的后续解析，如 <code>ConfigurationClassPostProcessor</code></li>
+</ul>
+<h4 id="ClassPathBeanDefinitionScanner"><a href="#ClassPathBeanDefinitionScanner" class="headerlink" title="ClassPathBeanDefinitionScanner"></a>ClassPathBeanDefinitionScanner</h4><p><code>ClassPathBeanDefinitionScanner</code> 的所有构造函数都会调用这个构造函数</p>
+<pre><code class="java">public ClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
+            Environment environment, @Nullable ResourceLoader resourceLoader) {
+
+  Assert.notNull(registry, &quot;BeanDefinitionRegistry must not be null&quot;);
+  this.registry = registry;
+
+  if (useDefaultFilters) {
+    // 注解的类过滤在这里 Component 等。此方法是父类 ClassPathScanningCandidateComponentProvider 提供的
+    registerDefaultFilters();
+  }
+  setEnvironment(environment);
+  setResourceLoader(resourceLoader);
+}</code></pre>
+<p>ClassPathScanningCandidateComponentProvider#registerDefaultFilters()</p>
+<pre><code class="java">protected void registerDefaultFilters() {
+  // 默认的过滤会留下带 @Component 注解的Bean。
+  this.includeFilters.add(new AnnotationTypeFilter(Component.class));
+
+  // 支持 JSR-250
+  ClassLoader cl = ClassPathScanningCandidateComponentProvider.class.getClassLoader();
+  try {
+    this.includeFilters.add(new AnnotationTypeFilter(
+        ((Class&lt;? extends Annotation&gt;) ClassUtils.forName(&quot;javax.annotation.ManagedBean&quot;, cl)), false));
+    logger.trace(&quot;JSR-250 &#39;javax.annotation.ManagedBean&#39; found and supported for component scanning&quot;);
+  }
+  catch (ClassNotFoundException ex) {
+    // JSR-250 1.1 API (as included in Java EE 6) not available - simply skip.
+  }
+
+  // 支持 JSR-330
+  try {
+    this.includeFilters.add(new AnnotationTypeFilter(
+        ((Class&lt;? extends Annotation&gt;) ClassUtils.forName(&quot;javax.inject.Named&quot;, cl)), false));
+    logger.trace(&quot;JSR-330 &#39;javax.inject.Named&#39; annotation found and supported for component scanning&quot;);
+  }
+  catch (ClassNotFoundException ex) {
+    // JSR-330 API not available - simply skip.
+  }
+}</code></pre>
+<p>ClassPathBeanDefinitionScanner 初始化时会做以下工作</p>
+<ul>
+<li>添加 <code>@Component</code> ，<code>@ManagedBean</code>，<code>@Named</code> 包含过滤器，spring在后续的扫描中只注册被这些注解标注的类</li>
+<li><code>@Controller</code> <code>@Service</code> <code>@Repository</code> 注解上面都标注了 <code>@Component</code> 注解，所以他们也可以被注册</li>
+</ul>
+<p>至此，AnnotationConfigApplicationContext 的默认无参构造器执行完成</p>
+<h2 id="注册主配置类"><a href="#注册主配置类" class="headerlink" title="注册主配置类"></a>注册主配置类</h2><p>为什么配置类是通过register(componentClasses)手动put到map当中呢？为什么不是扫描出来的呢？（一般类都是通过扫描出来的），其实也很简单，因为他无法扫描自己，一般类是spring通过解析配置类上的 <code>@ComponentScan</code> 注解然后被扫描到，所以无法扫描自己</p>
+<pre><code class="java">register(componentClasses);</code></pre>
+<pre><code class="java">@Override
+public void register(Class&lt;?&gt;... componentClasses) {
+  Assert.notEmpty(componentClasses, &quot;At least one component class must be specified&quot;);
+
+  //使用初始化好的 AnnotatedBeanDefinitionReader 注册配置类
+  this.reader.register(componentClasses);
+}</code></pre>
+<p>AnnotatedBeanDefinitionReader#register</p>
+<pre><code class="java">public void register(Class&lt;?&gt;... componentClasses) {
+  // 遍历所有的配置类，都将他们注册进去
+  for (Class&lt;?&gt; componentClass : componentClasses) {
+    registerBean(componentClass);
+  }
+}</code></pre>
+<p>AnnotatedBeanDefinitionReader#registerBean</p>
+<pre><code class="java">public void registerBean(Class&lt;?&gt; beanClass, @Nullable String name) {
+  doRegisterBean(beanClass, name, null, null, null);
+}</code></pre>
+<p>最后都会调用到全参的 <code>doRegisterBean</code> 方法</p>
+<pre><code class="java">private &lt;T&gt; void doRegisterBean(Class&lt;T&gt; beanClass, @Nullable String name,
+            @Nullable Class&lt;? extends Annotation&gt;[] qualifiers, @Nullable Supplier&lt;T&gt; supplier,
+            @Nullable BeanDefinitionCustomizer[] customizers) {
+
+  // 创建一个 BeanDefinition
+  AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+
+  // 调用条件解析器判断当前类是否应该跳过，即对 @Conditional 注解的处理
+  if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
+    return;
+  }
+
+  // 为 BeanDefinition 设置一些属性
+
+  abd.setInstanceSupplier(supplier);
+
+  // Scope 作用域信息，如Singleton
+  ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+  abd.setScope(scopeMetadata.getScopeName());
+
+  // 生成 bean 的 name
+  String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
+
+  // 为 BeanDefinition 设置一些其他的属性如 Lazy，DependsOn， Primary
+  AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+
+  if (qualifiers != null) {
+    for (Class&lt;? extends Annotation&gt; qualifier : qualifiers) {
+      if (Primary.class == qualifier) {
+        abd.setPrimary(true);
+      }
+      else if (Lazy.class == qualifier) {
+        abd.setLazyInit(true);
+      }
+      else {
+        abd.addQualifier(new AutowireCandidateQualifier(qualifier));
+      }
+    }
+  }
+
+  if (customizers != null) {
+    for (BeanDefinitionCustomizer customizer : customizers) {
+      customizer.customize(abd);
+    }
+  }
+
+  BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+
+  // 设置 类的代理类型，即是否使用代理，如果使用代理是代理接口还是类
+  definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+
+  // 注册 BeanDefinition
+  BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
+}</code></pre>
+<p>BeanDefinitionReaderUtils#registerBeanDefinition(BeanDefinitionHolder,BeanDefinitionRegistry)</p>
+<pre><code class="java">public static void registerBeanDefinition(
+            BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry)
+            throws BeanDefinitionStoreException {
+
+  // Register bean definition under primary name.
+  String beanName = definitionHolder.getBeanName();
+  registry.registerBeanDefinition(beanName, definitionHolder.getBeanDefinition());
+
+  // Register aliases for bean name, if any.
+  String[] aliases = definitionHolder.getAliases();
+  if (aliases != null) {
+    for (String alias : aliases) {
+      registry.registerAlias(beanName, alias);
+    }
+  }
+}</code></pre>
+<p>最终会调用 <code>DefaultListableBeanFactory#registerBeanDefinition(String,BeanDefinition)</code>，和上面注册一些提前的后置处理器一样</p>
+<p>注册主配置类，就是将主配置类注册成 <code>BeanDefinition</code></p>
+<h2 id="refresh-方法"><a href="#refresh-方法" class="headerlink" title="refresh()方法"></a>refresh()方法</h2><font color="red">
+refresh方法是Spring容器最核心的方法,概括了Spring初始化bean的整个生命周期，包括大家大概熟悉的一些生命周期的回调，以及AOP或者很多大神都分析过的Spring解决循环依赖的三级缓存
+</font>
+
+<pre><code class="java">public void refresh() throws BeansException, IllegalStateException {
+        synchronized (this.startupShutdownMonitor) {
+    // Prepare this context for refreshing.
+
+    //这里是做刷新bean工厂前的一系列赋值操作,主要是为前面创建的Spring工厂很多的属性都是空的，这个方式是为他做一些列的初始化值的操作！
+    prepareRefresh();
+
+    // Tell the subclass to refresh the internal bean factory.
+    //告诉子类刷新内部bean工厂 检测bean工厂是否存在 判断当前的bean工厂是否只刷新过一次，多次报错，返回当前使用的bean工厂,当该步骤为xml时 会新建一个新的工厂并返回
+    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+    // Prepare the bean factory for use in this context.
+    //这里是初始化Spring的bean容器，向beanFactory内部注册一些自己本身内置的Bean后置处理器也就是通常说的BeanPostProcessor，这个方法其实也是再初始化工厂！
+    prepareBeanFactory(beanFactory);
+
+    try {
+      // Allows post-processing of the bean factory in context subclasses.
+      //允许在上下文子类中对bean工厂进行后处理,作用是在BeanFactory准备工作完成后做一些定制化的处理! 但是注意，你点进去是空方法，空方法以为着什么？意味着Spring的开发者希望调用者自定义扩展时使用！
+      postProcessBeanFactory(beanFactory);
+
+      // Invoke factory processors registered as beans in the context.
+      //其实相信看名字，大部分读者都能够猜出，他的目的是扫描非配置类的bd注册到工厂里面，扫描完成之后，开始执行所有的BeanFactoryPostProcessors，这里出现了第一个扩展点，自定义实现BeanFactoryPostProcessors的时候，他的回调时机是在Spring读取了全部的BeanDefinition之后调用的
+      invokeBeanFactoryPostProcessors(beanFactory);
+
+      // Register bean processors that intercept bean creation.
+      //这里是注册bean的后置处理器 也就是  beanPostProcessor 的实现 还有自己内置的处理器  注意这里并没有调用该处理器，只是将胡处理器注册进来bean工厂! 不知道大家使用过beanPostProcessor接口这个扩展点吗？他就是再这个方法里面被注册到Spring工厂里面的，当然注意一下，他只是注册进去了，并没有执行！记住并没有执行！
+      registerBeanPostProcessors(beanFactory);
+
+      // Initialize message source for this context.
+      //国际化操作也就是 i18n的资源初始化
+      initMessageSource();
+
+      // Initialize event multicaster for this context.
+      //Spring为我们提供了对于事件编程的封装，一般来说事件分为三个角色，事件广播器(发布事件)，事件监听器(监听事件)，事件源（具体的事件信息）三个角色,这个方法的目的就是初始化事件的广播器！
+      initApplicationEventMulticaster();
+
+      // Initialize other special beans in specific context subclasses.
+      //这里又是一个扩展点，内部的方法为空，Spring并没有实现它，供调用者实现！
+      onRefresh();
+
+      // Check for listener beans and register them.
+      //注册Spring的事件监听器,上面已经说过了，这里是初始化并且注册事件监听器
+      registerListeners();
+
+      // Instantiate all remaining (non-lazy-init) singletons.
+      //这个方法是一个重点，他是为了实例化所有剩余的（非延迟初始化）单例。我们所说的bean的实例化，注入，解决循环依赖，回调beanPostProcessor等操作都是再这里实现的！
+      finishBeanFactoryInitialization(beanFactory);
+
+      // Last step: publish corresponding event.
+      //最后一步：发布相应的事件。Spring内置的事件
+      finishRefresh();
+    }
+
+    catch (BeansException ex) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(&quot;Exception encountered during context initialization - &quot; +
+            &quot;cancelling refresh attempt: &quot; + ex);
+      }
+
+      // Destroy already created singletons to avoid dangling resources.
+      destroyBeans();
+
+      // Reset &#39;active&#39; flag.
+      cancelRefresh(ex);
+
+      // Propagate exception to caller.
+      throw ex;
+    }
+
+    finally {
+      // Reset common introspection caches in Spring&#39;s core, since we
+      // might not ever need metadata for singleton beans anymore...
+      resetCommonCaches();
+    }
+  }
+}</code></pre>
+<p>图解</p>
+<p><img data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/27/20200727174111.png" alt="" class="lazyload"></p>
+<p>下章会详解refresh()方法</p>
+
+  </article>
+
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/Spring-framework%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Spring-framework源码分析</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -link" href="/tags/Spring/" rel="tag">Spring</a> <a class="nexmoefont icon-tag-fill -link" href="/tags/Spring-framework/" rel="tag">Spring-framework</a> <a class="nexmoefont icon-tag-fill -link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a>
+    
+</div>
+
+  <div class="nexmoe-post-footer">
+    
+      
+  <div class="nexmoe-post-copyright">
+    <strong>本文作者：</strong>code-13<br>
+    <strong>本文链接：</strong><a href="https://code-13.github.io/blogs/f820fb69.html" title="https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;f820fb69.html" target="_blank" rel="noopener">https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;f820fb69.html</a><br>
+    
+      <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+    
+  </div>
+
+
+    
+    <section class="nexmoe-comment">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.5.0/dist/gitalk.min.css">
+<div id="gitalk"></div>
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.5.0/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+    var gitalk = new Gitalk({
+        clientID: 'f3372034aa4218f9f359',
+        clientSecret: '235d14468b5af5837a9ff5e7b7541e93070cf602',
+        id: window.location.pathname,
+        repo: 'code-13.github.io',
+        owner: 'code-13',
+        admin: 'code-13'
+    })
+    gitalk.render('gitalk')
+</script>
+</section>
+  </div>
+</div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,gh/highlightjs/cdn-release@9.15.8/build/highlight.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script >hljs.initHighlightingOnLoad();</script>
+
+
+    <script src="https://cdn.jsdelivr.net/gh/xtaodada/xtaodada.github.io@0.0.2/copy.js"></script>
+
+
+<script src="/js/app.js?v=1597917296807"></script>
+  
+
+
+
+
+
+</body>
+
+</html>
