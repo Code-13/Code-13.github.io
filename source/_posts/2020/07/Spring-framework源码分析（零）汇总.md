@@ -50,3 +50,4 @@ https://github.com/Code-13/spring-framework
 - [Spring5参考指南](https://docs.flydean.com/spring-framework-documentation5)
 - [Spring 5.x 源码之旅](https://blog.csdn.net/wangwei19871103/category_9584144.html)
 - [Spring 学习——原理解析](https://www.jianshu.com/nb/42833403)
+- [Spring官网阅读 | 总结篇](https://blog.csdn.net/qq_41907991/article/details/105502255)

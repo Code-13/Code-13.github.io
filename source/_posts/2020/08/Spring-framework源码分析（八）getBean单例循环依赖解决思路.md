@@ -152,7 +152,7 @@ getEarlyBeanReference目的就是为了后置处理，给一个在提前曝光�
 
 ## Spring AOP 与 循环依赖
 
-如果循环依赖的时候，所有类又都需要Spring AOP自动代理，那Spring如何提前曝光？曝光的是原始bean还是代理后的bean？
+如果循环依赖的时候，所有类又都需要 `Spring AOP` 自动代理，那 `Spring` 如何提前曝光？曝光的是原始 `bean` 还是代理后的 `bean` ？
 
 要解答这个问题还是需要回到 `getEarlyBeanReference` 这个方法
 
@@ -169,8 +169,8 @@ public Object getEarlyBeanReference(Object bean, String beanName) {
 }
 ```
 
-`wrapIfNecessary` 是用于Spring AOP自动代理的。Spring将当前bean缓存到 `earlyProxyReferences` 中标识提前曝光的bean在被提前引用之前，然后进行了Spring AOP代理。
+`wrapIfNecessary` 是用于 `Spring AOP` 自动代理的。 `Spring` 将当前 `bean` 缓存到 `earlyProxyReferences` 中标识提前曝光的bean在被提前引用之前，然后进行了 `Spring AOP` 代理。
 
-但是经过Spring AOP代理后的bean就已经不再是原来的bean了，经过代理后的bean是一个全新的bean，也就是说代理前后的2个bean连内存地址都不一样了。这时将再引出新的问题：B提前引用A将引用到A的代理，这是符合常理的，但是最原始的bean A在B完成创建后将继续创建，那么Spring Ioc最后返回的Bean是Bean A呢还是经过代理后的Bean呢？
+但是经过 `Spring AOP` 代理后的 `bean` 就已经不再是原来的 `bean` 了，经过代理后的 `bean` 是一个全新的 `bean`，也就是说代理前后的2个 `bean` 连内存地址都不一样了。这时将再引出新的问题：B提前引用A将引用到A的代理，这是符合常理的，但是最原始的bean A在B完成创建后将继续创建，那么 `Spring Ioc` 最后返回的 `Bean` 是 `Bean A`呢还是经过代理后的 `Bean` 呢？
 
 
