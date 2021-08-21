@@ -1,10 +1,10 @@
-avatar: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.png # 网站 Logo
+avatar: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg # 网站 Logo
 background: # 既是博客的背景，又是文章默认头图
   path: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/20200708225124.png
   width: 1440
   height: 960
 favicon:
-  href: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.png # 网站图标
+  href: https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg # 网站图标
   type: image/x-icon # 图标类型，可能的值有(image/png, image/vnd.microsoft.icon, image/x-icon, image/gif)
 
 function: # 功能开关，可选值（true,false）
