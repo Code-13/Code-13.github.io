@@ -35,7 +35,7 @@ jobs:
         REPO: github.com/code-13/code-13.github.io
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
-        cd ./public && git init && git add .
+        cd ./public && git init -b gh-pages && git add .
         git config --global user.name $GIT_NAME
         git config --global user.email $GIT_EMAIL
         git commit -m "Site deployed by GitHub Actions"
