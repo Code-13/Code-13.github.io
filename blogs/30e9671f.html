@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>Spring-framework源码分析（八）getBean单例循环依赖解决思路 - 代号十三</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="code-13,代号十三">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" type="image/x-icon" />
+    <meta name="description" content="循环依赖如何发生？ spring如何解决循环依赖">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring-framework源码分析（八）getBean单例循环依赖解决思路">
+<meta property="og:url" content="https://code-13.github.io/blogs/30e9671f.html">
+<meta property="og:site_name" content="代号十三">
+<meta property="og:description" content="循环依赖如何发生？ spring如何解决循环依赖">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/08/10/20200810163606.jpeg">
+<meta property="article:published_time" content="2020-08-20T11:21:09.000Z">
+<meta property="article:modified_time" content="2021-12-24T09:12:03.509Z">
+<meta property="article:author" content="代号十三">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Spring-framework">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/08/10/20200810163606.jpeg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/highlight.js@9.15.8/styles/atom-one-dark.css,npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css,gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css,npm/hexo-theme-nexmoe@latest/source/lib/mdui_043tiny/css/mdui.css,npm/hexo-theme-nexmoe@latest/source/lib/iconfont/iconfont.css?v=233" crossorigin>
+    <link rel="stylesheet" href="/css/style.css?v=1640337216959">
+     
+    
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1640337216959">
+    
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/20200708225124.png)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="代号十三" class="mdui-btn mdui-btn-icon"><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" alt="代号十三"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="代号十三">
+            <img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" alt="代号十三" alt="代号十三">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>12</div>
+        <div><span>标签</span>5</div>
+        <div><span>分类</span>3</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-home"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-container"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-info-circle"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="https://code-13.github.io/books" title="书海遨游">
+            <i class="mdui-list-item-icon nexmoefont icon-unorderedlist"></i>
+            <div class="mdui-list-item-content">
+                书海遨游
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/PY.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-unorderedlist"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=site:code-13.github.io" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://space.bilibili.com/1504682" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/code-13/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/JVM-内存分析/">JVM 内存分析</a>
+          <span class="category-list-count">2</span>
+        </li>
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/MapStruct/">MapStruct</a>
+          <span class="category-list-count">1</span>
+        </li>
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/Spring-framework源码分析/">Spring-framework源码分析</a>
+          <span class="category-list-count">9</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/JVM/" style="font-size: 10px;">JVM</a> <a href="/tags/MAT/" style="font-size: 10px;">MAT</a> <a href="/tags/Spring/" style="font-size: 20px;">Spring</a> <a href="/tags/Spring-framework/" style="font-size: 20px;">Spring-framework</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 20px;">源码分析</a>
+    </div>
+    
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2021 代号十三
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br> 有点累
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: 62.5%;"> 
+              <img data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720195606.jpg" data-sizes="auto" alt="Spring-framework源码分析（八）getBean单例循环依赖解决思路" class="lazyload">
+              <h1>Spring-framework源码分析（八）getBean单例循环依赖解决思路</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2020年08月20日</a>
+    <a><i class="nexmoefont icon-areachart"></i>1.5k 字</a>
+    <a><i class="nexmoefont icon-time-circle-fill"></i>大概 6 分钟</a>
+</div>
+
+      
+
+      <ul>
+<li>循环依赖如何发生？</li>
+<li>spring如何解决循环依赖</li>
+</ul>
+<span id="more"></span>
+
+<h2 id="循环依赖"><a href="#循环依赖" class="headerlink" title="循环依赖"></a>循环依赖</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">A</span> </span>&#123;<br>	<span class="hljs-meta">@Autowired</span><br>	<span class="hljs-keyword">private</span> B b;<br>&#125;<br><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> </span>&#123;<br>	<span class="hljs-meta">@Autowired</span><br>	<span class="hljs-keyword">private</span> A a;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>A 需要 B，B 需要 A，此时就会有循环依赖，spring 自动帮我们解决了此类循环依赖，但是如果是构造器注入 spring 是解决不了的，因为 spring 解决循环依赖的做法是未等Bean创建完成就提前将实例暴露出去，方便其他 Bean 进行引用。</p>
+<h2 id="spring-解决循环依赖"><a href="#spring-解决循环依赖" class="headerlink" title="spring 解决循环依赖"></a>spring 解决循环依赖</h2><p><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/08/10/20200810163606.jpeg"></p>
+<p>当 spring 完成bean的实例化后，在调用 <code>populateBean</code> 填充属性之前，会先将实例暴露到第三级缓存 <code>singletonFactories</code> 中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Nullable</span><br><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">getSingleton</span><span class="hljs-params">(String beanName, <span class="hljs-keyword">boolean</span> allowEarlyReference)</span> </span>&#123;<br>  <span class="hljs-comment">// 从一级缓存获取，key=beanName value=bean</span><br>  Object singletonObject = <span class="hljs-keyword">this</span>.singletonObjects.get(beanName);<br>  <span class="hljs-keyword">if</span> (singletonObject == <span class="hljs-keyword">null</span> &amp;&amp; isSingletonCurrentlyInCreation(beanName)) &#123;<br>    <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>.singletonObjects) &#123;<br>      <span class="hljs-comment">// 从二级缓存获取，key=beanName value=bean</span><br>      singletonObject = <span class="hljs-keyword">this</span>.earlySingletonObjects.get(beanName);<br>      <span class="hljs-comment">// 是否允许循环引用, allowEarlyReference 默认为true</span><br>      <span class="hljs-keyword">if</span> (singletonObject == <span class="hljs-keyword">null</span> &amp;&amp; allowEarlyReference) &#123;<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 三级缓存获取，key=beanName value=objectFactory，objectFactory中存储getObject()方法用于获取提前曝光的实例</span><br><span class="hljs-comment">         * 为什么不直接将实例缓存到二级缓存，而要多此一举将实例先封装到objectFactory中？</span><br><span class="hljs-comment">         *</span><br><span class="hljs-comment">         * 因为主要关键点在getObject()方法并非直接返回实例，而是对实例又使用</span><br><span class="hljs-comment">         * SmartInstantiationAwareBeanPostProcessor 的 getEarlyBeanReference 方法对bean进行处理</span><br><span class="hljs-comment">         * </span><br><span class="hljs-comment">         * 也就是说，当spring中存在该后置处理器，所有的单例bean在实例化后都会被进行提前曝光到三级缓存中，</span><br><span class="hljs-comment">         * 但是并不是所有的bean都存在循环依赖，也就是三级缓存到二级缓存的步骤不一定都会被执行，有可能曝光后直接创建完成，没被提前引用过，</span><br><span class="hljs-comment">         * 就直接被加入到一级缓存中。因此可以确保只有提前曝光且被引用的bean才会进行该后置处理</span><br><span class="hljs-comment">         */</span><br>        ObjectFactory&lt;?&gt; singletonFactory = <span class="hljs-keyword">this</span>.singletonFactories.get(beanName);<br>        <span class="hljs-keyword">if</span> (singletonFactory != <span class="hljs-keyword">null</span>) &#123;<br>         <span class="hljs-comment">/**</span><br><span class="hljs-comment">          * 通过getObject()方法获取bean，通过此方法获取到的实例不单单是提前曝光出来的实例，</span><br><span class="hljs-comment">          * 它还经过了SmartInstantiationAwareBeanPostProcessor的getEarlyBeanReference方法处理过。</span><br><span class="hljs-comment">          * 这也正是三级缓存存在的意义，可以通过重写该后置处理器对提前曝光的实例，在被提前引用时进行一些操作</span><br><span class="hljs-comment">          */</span><br>          singletonObject = singletonFactory.getObject();<br>          <span class="hljs-comment">/**</span><br><span class="hljs-comment">          * 放入到二级缓存中</span><br><span class="hljs-comment">          */</span><br>          <span class="hljs-keyword">this</span>.earlySingletonObjects.put(beanName, singletonObject);<br>          <span class="hljs-comment">/**</span><br><span class="hljs-comment">          * 从三级缓存中删除</span><br><span class="hljs-comment">          */</span><br>          <span class="hljs-keyword">this</span>.singletonFactories.remove(beanName);<br>        &#125;<br>      &#125;<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> singletonObject;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 提前暴露一个早期的单例工厂，以便解决循环引用</span><br><br><span class="hljs-comment">// Eagerly cache singletons to be able to resolve circular references</span><br><span class="hljs-comment">// even when triggered by lifecycle interfaces like BeanFactoryAware.</span><br><span class="hljs-keyword">boolean</span> earlySingletonExposure = (mbd.isSingleton() &amp;&amp; <span class="hljs-keyword">this</span>.allowCircularReferences &amp;&amp;<br>    isSingletonCurrentlyInCreation(beanName));<br><span class="hljs-keyword">if</span> (earlySingletonExposure) &#123;<br>  <span class="hljs-keyword">if</span> (logger.isTraceEnabled()) &#123;<br>    logger.trace(<span class="hljs-string">&quot;Eagerly caching bean &#x27;&quot;</span> + beanName +<br>        <span class="hljs-string">&quot;&#x27; to allow for resolving potential circular references&quot;</span>);<br>  &#125;<br>  addSingletonFactory(beanName, () -&gt; getEarlyBeanReference(beanName, mbd, bean));<br>&#125;<br><br><span class="hljs-comment">// 初始化阶段</span><br><br><span class="hljs-comment">// Initialize the bean instance.</span><br>Object exposedObject = bean;<br><span class="hljs-keyword">try</span> &#123;<br>  <span class="hljs-comment">// 属性填充</span><br>  populateBean(beanName, mbd, instanceWrapper);<br>  <span class="hljs-comment">// 初始化</span><br>  exposedObject = initializeBean(beanName, exposedObject, mbd);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="三级缓存"><a href="#三级缓存" class="headerlink" title="三级缓存"></a>三级缓存</h2><ul>
+<li><code>singletonObject</code><br>  一级缓存，该缓存key = beanName, value = bean;这里的bean是已经创建完成的，该bean经历过实例化-&gt;属性填充-&gt;初始化以及各类的后置处理。因此，一旦需要获取bean时，我们第一时间就会寻找一级缓存</li>
+<li><code>earlySingletonObjects</code><br>  二级缓存，该缓存key = beanName, value = bean;这里跟一级缓存的区别在于，该缓存所获取到的bean是提前曝光出来的，是还没创建完成的。也就是说获取到的bean只能确保已经进行了实例化，但是属性填充跟初始化肯定还没有做完，因此该bean还没创建完成，仅仅能作为指针提前曝光，被其他bean所引用</li>
+<li><code>singletonFactories</code><br>  三级缓存，该缓存key = beanName, value = beanFactory;在bean实例化完之后，属性填充以及初始化之前，如果允许提前曝光，spring会将实例化后的bean提前曝光，也就是把该bean转换成beanFactory并加入到三级缓存。在需要引用提前曝光对象时再通过singletonFactory.getObject()获取。</li>
+</ul>
+<h2 id="getEarlyBeanReference"><a href="#getEarlyBeanReference" class="headerlink" title="getEarlyBeanReference"></a>getEarlyBeanReference</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">getEarlyBeanReference</span><span class="hljs-params">(String beanName, RootBeanDefinition mbd, Object bean)</span> </span>&#123;<br>  Object exposedObject = bean;<br>  <span class="hljs-keyword">if</span> (!mbd.isSynthetic() &amp;&amp; hasInstantiationAwareBeanPostProcessors()) &#123;<br>    <span class="hljs-keyword">for</span> (SmartInstantiationAwareBeanPostProcessor bp : getBeanPostProcessorCache().smartInstantiationAware) &#123;<br>      exposedObject = bp.getEarlyBeanReference(exposedObject, beanName);<br>    &#125;<br>  &#125;<br>  <span class="hljs-keyword">return</span> exposedObject;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>getEarlyBeanReference</code> 在 spring 内部只有一个实现 <code>AbstractAutoProxyCreator</code> ,此处是 spring AOP对象创建的一个时机</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Override</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">getEarlyBeanReference</span><span class="hljs-params">(Object bean, String beanName)</span> </span>&#123;<br>  Object cacheKey = getCacheKey(bean.getClass(), beanName);<br>  <span class="hljs-keyword">this</span>.earlyProxyReferences.put(cacheKey, bean);<br>  <span class="hljs-keyword">return</span> wrapIfNecessary(bean, beanName, cacheKey);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>getEarlyBeanReference目的就是为了后置处理，给一个在提前曝光时操作bean的机会</p>
+<h2 id="Spring-AOP-与-循环依赖"><a href="#Spring-AOP-与-循环依赖" class="headerlink" title="Spring AOP 与 循环依赖"></a>Spring AOP 与 循环依赖</h2><p>如果循环依赖的时候，所有类又都需要 <code>Spring AOP</code> 自动代理，那 <code>Spring</code> 如何提前曝光？曝光的是原始 <code>bean</code> 还是代理后的 <code>bean</code> ？</p>
+<p>要解答这个问题还是需要回到 <code>getEarlyBeanReference</code> 这个方法</p>
+<p><code>getEarlyBeanReference</code> 方法是 <code>SmartInstantiationAwareBeanPostProcessor</code> 所规定的接口。再通过UML的类图查看实现类，仅有 <code>AbstractAutoProxyCreator</code> 进行了实现。也就是说，除了用户在子类重写，否则仅有 <code>AbstractAutoProxyCreator</code> 一种情况</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// AbstractAutoProxyCreator.java</span><br><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">getEarlyBeanReference</span><span class="hljs-params">(Object bean, String beanName)</span> </span>&#123;<br>  <span class="hljs-comment">// 缓存当前bean，表示该bean被提前代理了</span><br>  Object cacheKey = getCacheKey(bean.getClass(), beanName);<br>  <span class="hljs-keyword">this</span>.earlyProxyReferences.put(cacheKey, bean);<br>  <span class="hljs-comment">// 对bean进行提前Spring AOP代理</span><br>  <span class="hljs-keyword">return</span> wrapIfNecessary(bean, beanName, cacheKey);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><code>wrapIfNecessary</code> 是用于 <code>Spring AOP</code> 自动代理的。 <code>Spring</code> 将当前 <code>bean</code> 缓存到 <code>earlyProxyReferences</code> 中标识提前曝光的bean在被提前引用之前，然后进行了 <code>Spring AOP</code> 代理。</p>
+<p>但是经过 <code>Spring AOP</code> 代理后的 <code>bean</code> 就已经不再是原来的 <code>bean</code> 了，经过代理后的 <code>bean</code> 是一个全新的 <code>bean</code>，也就是说代理前后的2个 <code>bean</code> 连内存地址都不一样了。这时将再引出新的问题：B提前引用A将引用到A的代理，这是符合常理的，但是最原始的bean A在B完成创建后将继续创建，那么 <code>Spring Ioc</code> 最后返回的 <code>Bean</code> 是 <code>Bean A</code>呢还是经过代理后的 <code>Bean</code> 呢？</p>
+
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>代号十三<br>
+        <strong>本文链接：</strong><a href="https://code-13.github.io/blogs/30e9671f.html" title="https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;30e9671f.html" target="_blank" rel="noopener">https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;30e9671f.html</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/Spring-framework%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Spring-framework源码分析</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/Spring/" rel="tag">Spring</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/Spring-framework/" rel="tag">Spring-framework</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          <section class="nexmoe-comment">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.css">
+<div id="gitalk"></div>
+<script src="https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+    var gitalk = new Gitalk({
+        clientID: 'f3372034aa4218f9f359',
+        clientSecret: '235d14468b5af5837a9ff5e7b7541e93070cf602',
+        id: window.location.pathname,
+        repo: 'code-13.github.io',
+        owner: 'code-13',
+        admin: 'code-13'
+    })
+    gitalk.render('gitalk')
+</script>
+</section>
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="toc-number">1.</span> <span class="toc-text">循环依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#spring-%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="toc-number">2.</span> <span class="toc-text">spring 解决循环依赖</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98"><span class="toc-number">3.</span> <span class="toc-text">三级缓存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#getEarlyBeanReference"><span class="toc-number">4.</span> <span class="toc-text">getEarlyBeanReference</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-AOP-%E4%B8%8E-%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96"><span class="toc-number">5.</span> <span class="toc-text">Spring AOP 与 循环依赖</span></a></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1640337216967"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>

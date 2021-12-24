@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    
+    <title>Spring-framework源码分析（一）调试环境搭建 - 代号十三</title>
+    <meta charset="UTF-8">
+    <meta name="keywords" content="code-13,代号十三">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    
+    
+
+    <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" type="image/x-icon" />
+    <meta name="description" content="本文主要内容： 搭建spring-framework 编译调试环境源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring-framework源码分析（一）调试环境搭建">
+<meta property="og:url" content="https://code-13.github.io/blogs/83dc2df5.html">
+<meta property="og:site_name" content="代号十三">
+<meta property="og:description" content="本文主要内容： 搭建spring-framework 编译调试环境源码">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720200632.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720201545.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720202627.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720202720.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720205554.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720205605.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/21/20200721090744.png">
+<meta property="article:published_time" content="2020-07-20T11:21:09.000Z">
+<meta property="article:modified_time" content="2021-12-24T09:12:03.505Z">
+<meta property="article:author" content="代号十三">
+<meta property="article:tag" content="源码分析">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Spring-framework">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720200632.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/highlight.js@9.15.8/styles/atom-one-dark.css,npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css,gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css,npm/hexo-theme-nexmoe@latest/source/lib/mdui_043tiny/css/mdui.css,npm/hexo-theme-nexmoe@latest/source/lib/iconfont/iconfont.css?v=233" crossorigin>
+    <link rel="stylesheet" href="/css/style.css?v=1640337217097">
+     
+    
+    <link rel="stylesheet" href="/lib/iconfont/iconfont.css?v=1640337217097">
+    
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="mdui-drawer-body-left">
+    
+    <div id="nexmoe-background">
+        <div class="nexmoe-bg" style="background-image: url(https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/20200708225124.png)"></div>
+        <div class="mdui-appbar mdui-shadow-0">
+            <div class="mdui-toolbar">
+                <a mdui-drawer="{target: '#drawer', swipe: true}" title="menu" class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon nexmoefont icon-menu"></i></a>
+                <div class="mdui-toolbar-spacer"></div>
+                <!--<a href="javascript:;" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">search</i></a>-->
+                <a href="/" title="代号十三" class="mdui-btn mdui-btn-icon"><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" alt="代号十三"></a>
+            </div>
+        </div>
+    </div>
+    <div id="nexmoe-header">
+        <div class="nexmoe-drawer mdui-drawer" id="drawer">
+    <div class="nexmoe-avatar mdui-ripple">
+        <a href="/" title="代号十三">
+            <img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/avatar.jpg" alt="代号十三" alt="代号十三">
+        </a>
+    </div>
+    <div class="nexmoe-count">
+        <div><span>文章</span>12</div>
+        <div><span>标签</span>5</div>
+        <div><span>分类</span>3</div>
+    </div>
+    <div class="nexmoe-list mdui-list" mdui-collapse="{accordion: true}">
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/" title="回到首页">
+            <i class="mdui-list-item-icon nexmoefont icon-home"></i>
+            <div class="mdui-list-item-content">
+                回到首页
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/archive.html" title="文章归档">
+            <i class="mdui-list-item-icon nexmoefont icon-container"></i>
+            <div class="mdui-list-item-content">
+                文章归档
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/about.html" title="关于博客">
+            <i class="mdui-list-item-icon nexmoefont icon-info-circle"></i>
+            <div class="mdui-list-item-content">
+                关于博客
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="https://code-13.github.io/books" title="书海遨游">
+            <i class="mdui-list-item-icon nexmoefont icon-unorderedlist"></i>
+            <div class="mdui-list-item-content">
+                书海遨游
+            </div>
+        </a>
+        
+        <a class="nexmoe-list-item mdui-list-item mdui-ripple false" href="/PY.html" title="我的朋友">
+            <i class="mdui-list-item-icon nexmoefont icon-unorderedlist"></i>
+            <div class="mdui-list-item-content">
+                我的朋友
+            </div>
+        </a>
+        
+    </div>
+    <aside id="nexmoe-sidebar">
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-search">
+         
+            <form id="search_form" action_e="https://cn.bing.com/search?q=site:code-13.github.io" onsubmit="return search();">
+                <label><input id="search_value" name="q" type="search" placeholder="搜索"></label>
+            </form>
+         
+    </div>
+</div>
+    
+    <div class="nexmoe-widget-wrap">
+    <div class="nexmoe-widget nexmoe-social">
+        <a class="mdui-ripple" href="https://space.bilibili.com/1504682" target="_blank" mdui-tooltip="{content: '哔哩哔哩'}" style="color: rgb(231, 106, 141);background-color: rgba(231, 106, 141, .15);">
+            <i class="nexmoefont icon-bilibili"></i>
+        </a><a class="mdui-ripple" href="https://github.com/code-13/" target="_blank" mdui-tooltip="{content: 'GitHub'}" style="color: rgb(25, 23, 23);background-color: rgba(25, 23, 23, .15);">
+            <i class="nexmoefont icon-github"></i>
+        </a>
+    </div>
+</div>
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <h3 class="nexmoe-widget-title">文章分类</h3>
+    <div class="nexmoe-widget">
+
+      <ul class="category-list">
+
+        
+
+
+        
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/JVM-内存分析/">JVM 内存分析</a>
+          <span class="category-list-count">2</span>
+        </li>
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/MapStruct/">MapStruct</a>
+          <span class="category-list-count">1</span>
+        </li>
+
+        
+
+        <li class="category-list-item">
+          <a class="category-list-link" href="/categories/Spring-framework源码分析/">Spring-framework源码分析</a>
+          <span class="category-list-count">9</span>
+        </li>
+
+        
+      </ul>
+
+    </div>
+  </div>
+
+
+    
+    
+  <div class="nexmoe-widget-wrap">
+    <div id="randomtagcloud" class="nexmoe-widget tagcloud nexmoe-rainbow">
+      <a href="/tags/JVM/" style="font-size: 10px;">JVM</a> <a href="/tags/MAT/" style="font-size: 10px;">MAT</a> <a href="/tags/Spring/" style="font-size: 20px;">Spring</a> <a href="/tags/Spring-framework/" style="font-size: 20px;">Spring-framework</a> <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" style="font-size: 20px;">源码分析</a>
+    </div>
+    
+  </div>
+
+    
+</aside>
+    <div class="nexmoe-copyright">
+        &copy; 2021 代号十三
+        Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+        & <a href="https://github.com/theme-nexmoe/hexo-theme-nexmoe" target="_blank">Nexmoe</a>
+        <br> 有点累
+    </div>
+</div><!-- .nexmoe-drawer -->
+    </div>
+    <div id="nexmoe-content">
+        <div class="nexmoe-primary">
+            <div class="nexmoe-post">
+
+  <article>
+      
+          <div class="nexmoe-post-cover" style="padding-bottom: 62.5%;"> 
+              <img data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720195606.jpg" data-sizes="auto" alt="Spring-framework源码分析（一）调试环境搭建" class="lazyload">
+              <h1>Spring-framework源码分析（一）调试环境搭建</h1>
+          </div>
+      
+      
+      <div class="nexmoe-post-meta nexmoe-rainbow" style="margin:10px 0!important;">
+    <a><i class="nexmoefont icon-calendar-fill"></i>2020年07月20日</a>
+    <a><i class="nexmoefont icon-areachart"></i>697 字</a>
+    <a><i class="nexmoefont icon-time-circle-fill"></i>大概 3 分钟</a>
+</div>
+
+      
+
+      <blockquote>
+<p>本文主要内容： 搭建spring-framework 编译调试环境源码</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="准备一下工具"><a href="#准备一下工具" class="headerlink" title="准备一下工具"></a>准备一下工具</h3><ul>
+<li><code>JDK11</code>(或者JDK8以上即可,本系列采用JDK11)</li>
+<li><a target="_blank" rel="noopener" href="https://www.jetbrains.com/idea/">idea</a> 开发工具</li>
+</ul>
+<h3 id="源码准备"><a href="#源码准备" class="headerlink" title="源码准备"></a>源码准备</h3><ul>
+<li>前往Spring的官方仓库：<a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-framework">https://github.com/spring-projects/spring-framework</a></li>
+</ul>
+<ul>
+<li>将代码<code>clone</code>或者<code>Download ZIP</code>均可,这里推荐<code>clone</code>的方式，因为可以方便的对比变化：</li>
+</ul>
+<p><img data-fancybox="gallery" data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720200632.png" alt="仓库" class="lazyload"></p>
+<ul>
+<li>clone 完成之后如图所示：</li>
+</ul>
+<p><img data-fancybox="gallery" data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720201545.png" alt="文件" class="lazyload"></p>
+<h2 id="Idea导入项目"><a href="#Idea导入项目" class="headerlink" title="Idea导入项目"></a>Idea导入项目</h2><ul>
+<li>打开 <code>Idea</code>，选择 <code>open or import</code>：</li>
+</ul>
+<p><img data-fancybox="gallery" data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720202627.png" alt="open or import" class="lazyload"></p>
+<ul>
+<li>选择刚才 <code>clone</code> 的文件夹：</li>
+</ul>
+<p><img data-fancybox="gallery" data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720202720.png" alt="文件夹" class="lazyload"></p>
+<ul>
+<li>Spring会自动下载 <code>gradle</code>，但可能会很慢，耐心等待一下即可</li>
+</ul>
+<ul>
+<li>在 <code>build.gradle</code> 文件中的 <code>repositories</code> 加入<a target="_blank" rel="noopener" href="https://developer.aliyun.com/mirror/maven">阿里云仓库</a>，如图所示</li>
+</ul>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs gradle"><span class="hljs-keyword">repositories</span> &#123;<br>  mavenCentral()<br>  maven &#123; url <span class="hljs-string">&#x27;https://maven.aliyun.com/repository/public/&#x27;</span> &#125;<br>  maven &#123; url <span class="hljs-string">&quot;https://repo.spring.io/libs-spring-framework-build&quot;</span> &#125;<br>  maven &#123; url <span class="hljs-string">&quot;https://repo.spring.io/milestone&quot;</span> &#125; <span class="hljs-comment">// Reactor</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>在项目的根目录下，有一个 <code>import-into-idea</code> 文件，里面描述了如何导入idea，但其实不按照上面也行</li>
+</ul>
+<h2 id="新建模块"><a href="#新建模块" class="headerlink" title="新建模块"></a>新建模块</h2><ul>
+<li>由于 <code>Spring</code> 源码使用 <code>gradle</code> 构建源码，所以我们需要新建一个 <code>gradle</code> 模块</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720205554.png"></p>
+<ul>
+<li>取个模块名，我这里就叫做 <code>spring-examples</code>：</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/20/20200720205605.png"></p>
+<ul>
+<li>在 <code>build.gradle</code> 引入依赖</li>
+</ul>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs gradle"><span class="hljs-keyword">dependencies</span> &#123;<br>  <span class="hljs-keyword">compile</span>(<span class="hljs-keyword">project</span>(<span class="hljs-string">&quot;:spring-beans&quot;</span>))<br>  <span class="hljs-keyword">compile</span>(<span class="hljs-keyword">project</span>(<span class="hljs-string">&quot;:spring-context&quot;</span>))<br>  <span class="hljs-keyword">compile</span>(<span class="hljs-keyword">project</span>(<span class="hljs-string">&quot;:spring-core&quot;</span>))<br>  <span class="hljs-keyword">compile</span>(<span class="hljs-keyword">project</span>(<span class="hljs-string">&quot;:spring-aop&quot;</span>))<br>  optional(<span class="hljs-string">&quot;org.aspectj:aspectjweaver&quot;</span>)<br>  testCompile <span class="hljs-keyword">group</span>: <span class="hljs-string">&#x27;junit&#x27;</span>, name: <span class="hljs-string">&#x27;junit&#x27;</span>, version: <span class="hljs-string">&#x27;4.12&#x27;</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><ul>
+<li>写一个配置类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.github.code13.app;<br><br><span class="hljs-keyword">import</span> org.springframework.context.annotation.ComponentScan;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.EnableAspectJAutoProxy;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> Code13</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@date</span> 2020-07-14 14:27</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@ComponentScan(&quot;com.github.code13&quot;)</span><br><span class="hljs-comment">//@EnableAspectJAutoProxy 开启Aop注解功能，现在暂时不需要</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AppConfig</span> </span>&#123;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>写一个 <code>bean</code></li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.github.code13.bean;<br><br><span class="hljs-keyword">import</span> org.springframework.stereotype.Component;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> Code13</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@date</span> 2020-07-14 14:46</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Component</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">B</span> </span>&#123;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">B</span><span class="hljs-params">()</span></span>&#123;<br>		System.out.println(<span class="hljs-string">&quot;B创建了&quot;</span>);<br>	&#125;<br><br>	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">test1</span><span class="hljs-params">()</span></span>&#123;<br>		System.out.println(<span class="hljs-string">&quot;被增强的方法&quot;</span>);<br>	&#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>测试类</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.github.code13;<br><br><span class="hljs-keyword">import</span> com.github.code13.app.AppConfig;<br><span class="hljs-keyword">import</span> com.github.code13.bean.B;<br><span class="hljs-keyword">import</span> org.junit.jupiter.api.Test;<br><span class="hljs-keyword">import</span> org.springframework.context.annotation.AnnotationConfigApplicationContext;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * AOP测试</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@author</span> Code13</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@date</span> 2020-07-14 14:45</span><br><span class="hljs-comment"> */</span><br><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AopTest</span> </span>&#123;<br><br>	<span class="hljs-meta">@Test</span><br>	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">test1</span><span class="hljs-params">()</span></span>&#123;<br>		<span class="hljs-keyword">final</span> AnnotationConfigApplicationContext ac = <span class="hljs-keyword">new</span> AnnotationConfigApplicationContext(AppConfig.class);<br>		<span class="hljs-keyword">final</span> B bean = ac.getBean(B.class);<br>		bean.test1();<br>		System.out.println(bean.getClass().getName());<br>	&#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>查看结果</li>
+</ul>
+<pre><code>如果没有什么问题的话，调试环境应该已经搭建成功
+</code></pre>
+<p><img data-fancybox="gallery" data-sizes="auto" data-src="https://cdn.jsdelivr.net/gh/code-13/cloudimage/images/2020/07/21/20200721090744.png" alt="success" class="lazyload"></p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p><strong>其实我们在搭建的过程中可能会遇见各种各样的问题</strong>，下面尝试对这些问题给出解决方案</p>
+<h3 id="Github-下载缓慢的问题"><a href="#Github-下载缓慢的问题" class="headerlink" title="Github 下载缓慢的问题"></a><code>Github</code> 下载缓慢的问题</h3><ul>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/93436925">完美解决github访问速度慢</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/38192507">GitHub国内镜像源</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/de183d44bd27">利用Gitee不改Host，解决GitHub下载速度慢的方法，亲测有效</a></li>
+</ul>
+<p>其实关于Github的镜像源有很多，这里还是推荐国内的 <a target="_blank" rel="noopener" href="https://www.gitee.com/">Gitee</a>；快是真的快</p>
+<h3 id="Spring-源码编译问题"><a href="#Spring-源码编译问题" class="headerlink" title="Spring 源码编译问题"></a><code>Spring</code> 源码编译问题</h3><ul>
+<li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/java_lyvee/article/details/107300648">spring源码系列（六）——番外篇如何编译spring的源码</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ui4y137K3">Spring源码分析环境搭建</a></p>
+</li>
+</ul>
+
+  </article>
+
+  
+      
+    <div class="nexmoe-post-copyright">
+        <strong>本文作者：</strong>代号十三<br>
+        <strong>本文链接：</strong><a href="https://code-13.github.io/blogs/83dc2df5.html" title="https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;83dc2df5.html" target="_blank" rel="noopener">https:&#x2F;&#x2F;code-13.github.io&#x2F;blogs&#x2F;83dc2df5.html</a><br>
+        
+            <strong>版权声明：</strong>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/cn/deed.zh" target="_blank">CC BY-NC-SA 3.0 CN</a> 协议进行许可
+        
+    </div>
+
+
+  
+  
+  <div class="nexmoe-post-meta nexmoe-rainbow">
+    
+        <a class="nexmoefont icon-appstore-fill -link" href="/categories/Spring-framework%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">Spring-framework源码分析</a>
+    
+    
+        <a class="nexmoefont icon-tag-fill -none-link" href="/tags/Spring/" rel="tag">Spring</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/Spring-framework/" rel="tag">Spring-framework</a> <a class="nexmoefont icon-tag-fill -none-link" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag">源码分析</a>
+    
+</div>
+
+  
+      <div class="nexmoe-post-footer">
+          <section class="nexmoe-comment">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.css">
+<div id="gitalk"></div>
+<script src="https://cdn.jsdelivr.net/npm/gitalk@latest/dist/gitalk.min.js"></script>
+<script type="text/javascript">
+    var gitalk = new Gitalk({
+        clientID: 'f3372034aa4218f9f359',
+        clientSecret: '235d14468b5af5837a9ff5e7b7541e93070cf602',
+        id: window.location.pathname,
+        repo: 'code-13.github.io',
+        owner: 'code-13',
+        admin: 'code-13'
+    })
+    gitalk.render('gitalk')
+</script>
+</section>
+      </div>
+  
+</div>
+            <div class="nexmoe-post-right">
+              <div class="nexmoe-fixed">
+                  <div class="nexmoe-tool"> 
+                    
+                      
+                        
+                          
+                          
+                              <button class="mdui-fab catalog" style="overflow:unset;">
+                                  <i class="nexmoefont icon-i-catalog"></i>
+                                  <div class="nexmoe-toc">
+                                      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E4%B8%80%E4%B8%8B%E5%B7%A5%E5%85%B7"><span class="toc-number">1.1.</span> <span class="toc-text">准备一下工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BA%90%E7%A0%81%E5%87%86%E5%A4%87"><span class="toc-number">1.2.</span> <span class="toc-text">源码准备</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Idea%E5%AF%BC%E5%85%A5%E9%A1%B9%E7%9B%AE"><span class="toc-number">2.</span> <span class="toc-text">Idea导入项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B0%E5%BB%BA%E6%A8%A1%E5%9D%97"><span class="toc-number">3.</span> <span class="toc-text">新建模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-number">4.</span> <span class="toc-text">测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98"><span class="toc-number">5.</span> <span class="toc-text">问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Github-%E4%B8%8B%E8%BD%BD%E7%BC%93%E6%85%A2%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">5.1.</span> <span class="toc-text">Github 下载缓慢的问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E9%97%AE%E9%A2%98"><span class="toc-number">5.2.</span> <span class="toc-text">Spring 源码编译问题</span></a></li></ol></li></ol>
+                                  </div>
+                              </button>
+                          
+                          
+                      
+                    
+                      <a href="#nexmoe-content" class="toc-link" aria-label="回到顶部" title="top"><button class="mdui-fab mdui-ripple"><i class="nexmoefont icon-caret-top"></i></button></a>
+                  </div>
+              </div>
+            </div>
+        </div>
+    </div>
+     
+    <div id="nexmoe-search-space">
+        <div class="search-container">
+            <div class="search-header">
+                <div class="search-input-container">
+                    <input class="search-input" type="text" placeholder="搜索" oninput="sinput();">
+                </div>
+                <a class="search-close" onclick="sclose();">×</a>
+            </div>
+            <div class="search-body"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/combine/npm/lazysizes@5.1.0/lazysizes.min.js,npm/mdui@0.4.3/dist/js/mdui.min.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+ 
+
+<script async src="/js/app.js?v=1640337217105"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js"></script>
+<script>
+	$(".justified-gallery").justifiedGallery({
+		rowHeight: 160,
+		margins: 10,
+	});
+</script>
+
+
+    
+
+
+
+
+
+</body>
+
+</html>
